@@ -1,0 +1,23 @@
+{
+  "name": "frappe-platform-docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev docs --host 0.0.0.0 --port 5174 --strictPort",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs --host 0.0.0.0 --port 4174"
+  },
+  "devDependencies": {
+    "@shikijs/transformers": "2.5.0",
+    "autoprefixer": "10.5.5",
+    "frappe-ui": "github:frappe/frappe-ui#v1.0.1",
+    "mermaid": "^11.12.0",
+    "minisearch": "7.2.0",
+    "postcss": "^8.5.6",
+    "reka-ui": "^2.10.4",
+    "tailwindcss": "3.4.19",
+    "vitepress": "1.6.4",
+    "vue": "^3.5.22",
+    "vue-router": "^4.6.3"
+  }
+}

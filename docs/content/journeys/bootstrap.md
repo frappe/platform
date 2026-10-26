@@ -1,0 +1,60 @@
+---
+tableFirstCol: 13rem
+---
+
+# Pilot bootstrap
+
+Bootstrap gives a prepared Pilot VM its own identity and Central connection. Pilot reads the configuration from inside the VM and applies it before managed access opens.
+
+```mermaid
+flowchart LR
+  Central[Central prepares metadata] --> Guest[Atlas delivers it to the VM]
+  Guest --> Pilot[Pilot applies configuration]
+```
+
+## Image preparation
+
+Cargo's image contains Pilot, a bench and production configuration. Site and Apps images also contain a prepared site and hostname aliases.
+
+Cargo runs `pilot setup central` to leave the image Central-enabled and awaiting bootstrap. The image contains no customer's Central credential.
+
+The runtime is reusable. The identity belongs to the new VM.
+
+## Instance metadata
+
+Central prepares a server-specific credential and includes it in the VM request as **instance metadata**. Metadata is configuration that the host makes available to its guest.
+
+The `pilot-central` attribute includes the Central endpoint, Pilot credential, verification endpoint, Pilot audience and an initial public-key cache.
+
+Atlas and Metal deliver this configuration to the selected VM. Pilot reads it itself, so startup needs no separate SSH setup script from Atlas.
+
+| Metadata attribute | Destination |
+| --- | --- |
+| `pilot-central` | Central connection and verification identity. |
+| `pilot-common-config` | Host-shared settings, including telemetry when supplied. |
+| `pilot-config` | Bench configuration patches. |
+| `pilot-common-site-config` | Shared Frappe site settings. |
+
+These patches configure the runtime. They do not replace its database or app code.
+
+## Configuration application
+
+The bootstrap watcher checks metadata while Pilot waits for configuration. Missing data leaves it waiting. Invalid data produces an error and another check.
+
+Pilot seeds the public-key cache, applies the patches and saves the verification endpoint and audience. It then marks the host bootstrapped.
+
+The initial keys let Pilot check a known signing key without a separate download on the first request. An old cache can refresh in the background. Signature, audience and time checks still apply.
+
+The boot-time process also sizes managed MariaDB for the VM's actual memory. The customer's VM can differ from the build machine.
+
+Pilot's Central client reads its endpoint and credential from metadata for each call. Pilot saves bootstrap and verification state, but does not copy that credential into its local TOML configuration.
+
+## Bootstrap and readiness
+
+Bootstrap establishes management identity. Central separately checks whether the app answers through its public hostname, then arranges the customer's login.
+
+A VM can run its web server while Pilot still applies Cloud configuration. The pending screen represents that intermediate state.
+
+The trust direction matters: Pilot uses its server credential to call Central. Central uses separate signed assertions to call Pilot. [Authentication](../trust/authentication.md) explains both checks.
+
+The [self-bootstrap design note](https://gameplan.frappe.io/g/community/frappe-cloud/space/17/discussion/5826/pilot-self-bootstrapping-in-cloud) describes the design. Implementation starts in [metadata handling](https://github.com/frappe/pilot/blob/develop/pilot/integrations/central/metadata.py) and the [bootstrap watcher](https://github.com/frappe/pilot/blob/develop/admin/backend/central_bootstrap.py).
