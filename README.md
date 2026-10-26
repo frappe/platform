@@ -28,6 +28,8 @@ yarn preview
 
 The static output is in `docs/.vitepress/dist`. Set `DOCS_BASE` at build time when serving below a path.
 
+Each push to `develop` publishes the site to https://frappe.github.io/platform/ through `.github/workflows/docs.yml`.
+
 ## Edit
 
 Pages live in `docs/content/`. Navigation lives in `docs/.vitepress/sidebar.ts`. The site uses VitePress and the same pinned Frappe UI docs theme as Central's customer docs.
