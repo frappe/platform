@@ -20,7 +20,16 @@ The browser does not need the host's Central credential. A site token does not g
 
 **Local runtime work** stays with Pilot. It can inspect apps, manage domains or queue permitted site tasks. Changes to shared bench state need further checks.
 
-**Cloud account work** reaches Central. Pilot forwards only an allowed set of methods and the in-app billing API prefix. It reads the server credential from instance metadata for the call.
+**Cloud account work** reaches Central through `/api/v1/sites/<site>/central/<method>`. Pilot reads the server credential from instance metadata for each call and forwards only these methods:
+
+| Allowed method | Use |
+| --- | --- |
+| `central.billing.api.billing_api.*` | In-app billing, plans and trial information. |
+| `central.api.pilot.heartbeat` | Server heartbeat. |
+| `central.api.pilot.get_team_identity_token` | A token that proves the team and its site hostnames to another service. |
+| `central.api.email_oauth.start`, `central.api.email_oauth.relay_token` | Email account OAuth. |
+
+Pilot returns `403` for any other method.
 
 Central resolves the linked server and team, then applies account and billing rules.
 

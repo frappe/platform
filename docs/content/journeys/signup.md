@@ -30,11 +30,13 @@ The apps are already installed. Startup still needs a working runtime, valid aut
 
 Central observes the VM's mesh address and derives its automatic admin and site names. It creates the Site record and queues the route for the customer's chosen name.
 
-The image's local aliases let that name reach the prepared site before its directory rename. Central also asks Pilot to claim its automatic admin name.
+The image's local aliases let that name reach the prepared site before its directory rename. Central also asks Pilot to replace its local `admin.local` name with the automatic `admin-vm-<label>` name.
 
-Central probes the public site's `/api/method/ping`. When the site answers, Central sends Pilot a signed site-login assertion.
+The console polls Central while it waits. Central probes the public site's `/api/method/ping`. When the site answers, Central sends Pilot a signed site-login assertion.
 
-Pilot checks the assertion and creates the Frappe session. Central returns a login URL on the site's public hostname. The customer's browser does not receive Central's regional control credentials.
+Pilot checks the assertion and creates the Frappe session. A trial team member signs in as their own user, which Pilot creates as a System Manager on first login.
+
+Central returns a login URL on the chosen name once that name answers. Until then, it uses the automatic `site-<label>` name. A Pilot `401` leaves the site unclaimed, and the console retries for up to 120 seconds. The browser does not receive Central's regional control credentials.
 
 The first successful claim queues the physical site rename. That task can finish after the customer enters the app. [Domains](./domains.md) explains why this is safe.
 

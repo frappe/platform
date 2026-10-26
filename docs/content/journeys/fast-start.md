@@ -14,7 +14,9 @@ flowchart LR
 
 Cargo installs Pilot, Frappe and the product apps, configures production processes and prepares hostname aliases.
 
-A disk image saves those files. A warm snapshot also saves prepared memory and process state. Before capture, Atlas starts an isolated guest and the prewarm service requests local app pages.
+A disk image saves those files. A warm snapshot also saves prepared memory and process state. Before capture, Atlas runs an isolated guest for five minutes. The prewarm service requests `/api/method/ping`, the home page, `/login` and an authenticated `/desk` page through the local worker.
+
+Atlas captures after its fixed wait. It does not check whether prewarm succeeded.
 
 Frappe loads code and prepares its workers ahead of the customer's request. Pilot's admin process must stay awake during preparation. An idle process can add another wake-up delay.
 
@@ -24,13 +26,10 @@ Warm restore needs the template's CPU count and memory size. The new disk must b
 
 ## Instance configuration
 
-Pilot reads its own configuration from instance metadata. Central includes an initial public-key set, so Pilot can seed its cache before bootstrap completes.
+Two mechanisms remove setup work from the first login:
 
-The first request using a known key needs no extra key download. Signature, audience and time checks still apply.
-
-Local aliases let the public name reach the prepared site before its physical rename. The more specific admin pattern reaches Pilot. The broader site pattern reaches Frappe.
-
-Together, [bootstrap](./bootstrap.md) and [domain aliases](./domains.md#local-hostname-aliases) remove setup and rename work from the first-login dependency.
+- [Bootstrap](./bootstrap.md) applies the VM's identity from metadata and seeds Pilot's key cache, so the first login needs no key download.
+- [Local aliases](./domains.md#local-hostname-aliases) let the public name reach the prepared site before its physical rename.
 
 ## Clock restoration
 

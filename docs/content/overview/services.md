@@ -1,7 +1,3 @@
----
-tableFirstCol: 10rem
----
-
 # Services and responsibilities
 
 Cloud v2 divides work between customer account services, regional infrastructure and the runtime inside each VM. Each component owns a defined part of that work.
@@ -12,7 +8,7 @@ Cloud v2 divides work between customer account services, regional infrastructure
 | --- | --- |
 | Central | Accounts, teams, permissions, billing and customer resource requests. |
 | Atlas | A region's VM records, host selection and infrastructure changes. |
-| Metal | VM execution and state reporting on each physical host. |
+| Metal | Firecracker VM execution, ZFS disks, local images and state reporting on each physical host. |
 | WG Mesh | Private VM traffic, encrypted host tunnels and tenant network boundaries. |
 
 For a resize, Central checks the customer's permission. Atlas coordinates the regional change. Metal applies the host operation.
@@ -21,7 +17,7 @@ Atlas manages both raw and Pilot VMs. Metal is a host program. WG Mesh is host n
 
 ## App preparation and runtime
 
-**Cargo** builds app images before signup. It requests machines and snapshots from Atlas. It also manages regional services such as Garage.
+**Cargo** builds app images before signup. It requests machines and snapshots from Atlas. It also provisions Garage and the regional Datum host. Atlas installs Cargo itself on a service VM, and Cargo runs as a Frappe app on that VM's Pilot.
 
 **Pilot** runs inside a Pilot VM. It manages benches, sites, apps, local tasks and backups. Frappe sites use its site-scoped APIs.
 
@@ -40,7 +36,14 @@ Cargo prepares reusable runtime. Pilot manages the running customer's copy. [App
 
 The proxy reaches a VM through WG Mesh. The VM's nginx selects the site. A VM keeps its mesh address when it moves between physical hosts.
 
-Regional service VMs use the same Metal infrastructure as customer VMs, under service tenant `0`. Atlas explicitly grants network access to services that need to cross customer boundaries.
+Regional service VMs use the same Metal infrastructure as customer VMs, under service tenant `0`.
+
+- **Atlas creates** the HTTP proxy, Cargo, IPv6 router and WireGuard gateway.
+- **Cargo creates**, through Atlas, the Garage gateway and storage nodes and the Datum host.
+
+The proxy and Cargo are **privileged** VMs: WG Mesh lets them reach VMs in other tenants. Other VMs cannot cross tenant boundaries.
+
+Atlas also stores image artifacts in its own Garage bucket, created through Cargo. Metal downloads them through signed URLs.
 
 Network reach does not replace API permission. [Authentication](../trust/authentication.md) explains the checks on each request.
 

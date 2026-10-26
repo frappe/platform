@@ -34,6 +34,8 @@ Central also reads regional state to check progress and recover interrupted acti
 | Central → Cargo | Manage buckets and storage credentials. |
 | Central → HTTP proxy | Add or remove customer domain routes. |
 | Atlas → HTTP proxy | Configure regional service routes and proxy infrastructure. |
+| Atlas → Cargo | Install Cargo and create Atlas's image-artifact bucket. |
+| Cargo → HTTP proxy | Add `-svc` routes for Garage and other managed services. |
 | Central → Pilot | Arrange login and manage the assigned runtime. |
 | Pilot → Central | Call the allowed Cloud account methods. |
 | Frappe site → Pilot | Request permitted operations for that site. |

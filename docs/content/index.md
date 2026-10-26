@@ -11,13 +11,13 @@ Central manages your Cloud account. Regional services run your virtual machines 
 
 ## Regions
 
-A region is infrastructure in one location. BOM is Mumbai. BLR is Bengaluru. Each has its own services and physical servers.
+A region is infrastructure in one location, such as Mumbai (BOM) or Bengaluru (BLR). Each region has its own Atlas, regional services and physical servers.
 
 Cloud v2 uses a **microservice architecture**. Each service owns a specific job and accepts requests through an API. Services work together without sharing one database or one credential.
 
-Central checks the customer's account and permissions. Atlas coordinates work in the chosen region. Metal runs VMs on physical hosts. WG Mesh connects those VMs through a private network.
+Central checks the customer's account and permissions. Atlas coordinates work in the chosen region. Metal runs Firecracker VMs on physical hosts. WG Mesh connects those VMs through a private network.
 
-Cargo prepares app images and regional services. The HTTP proxy routes web requests. Garage stores objects. Datum receives metrics and logs and writes them to ClickHouse.
+Atlas also creates the regional service VMs: the HTTP proxy, Cargo, the IPv6 router and the WireGuard gateway. Cargo builds app images and runs managed services: Garage stores objects, and Datum receives metrics and logs and writes them to ClickHouse.
 
 ## VM types
 

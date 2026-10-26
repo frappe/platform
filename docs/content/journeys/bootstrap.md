@@ -1,7 +1,3 @@
----
-tableFirstCol: 13rem
----
-
 # Pilot bootstrap
 
 Bootstrap gives a prepared Pilot VM its own identity and Central connection. Pilot reads the configuration from inside the VM and applies it before managed access opens.
@@ -14,7 +10,7 @@ flowchart LR
 
 ## Image preparation
 
-Cargo's image contains Pilot, a bench and production configuration. Site and Apps images also contain a prepared site and hostname aliases.
+Cargo's image contains Pilot, a bench, production configuration and the admin hostname alias. Site and Apps images also contain a prepared site and its hostname alias.
 
 Cargo runs `pilot setup central` to leave the image Central-enabled and awaiting bootstrap. The image contains no customer's Central credential.
 
@@ -22,9 +18,9 @@ The runtime is reusable. The identity belongs to the new VM.
 
 ## Instance metadata
 
-Central prepares a server-specific credential and includes it in the VM request as **instance metadata**. Metadata is configuration that the host makes available to its guest.
+Central prepares a server-specific credential and includes it in the VM request as **instance metadata**. Metadata is configuration that the host makes available to its guest at `169.254.169.254`.
 
-The `pilot-central` attribute includes the Central endpoint, Pilot credential, verification endpoint, Pilot audience and an initial public-key cache.
+The `pilot-central` attribute requires `central_endpoint`, `central_auth_token`, `jwks_url` and `jwks_audience_id`. It can also include `initial_jwks_cache`.
 
 Atlas and Metal deliver this configuration to the selected VM. Pilot reads it itself, so startup needs no separate SSH setup script from Atlas.
 
@@ -35,7 +31,7 @@ Atlas and Metal deliver this configuration to the selected VM. Pilot reads it it
 | `pilot-config` | Bench configuration patches. |
 | `pilot-common-site-config` | Shared Frappe site settings. |
 
-These patches configure the runtime. They do not replace its database or app code.
+Each metadata value is limited to 1 KiB, so each configuration file has its own attribute. These patches configure the runtime. They do not replace its database or app code.
 
 ## Configuration application
 

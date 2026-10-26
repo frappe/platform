@@ -20,7 +20,7 @@ Cloud uses automatic names and explicit routes.
 | Customer-chosen regional name | Looks up the stored route for that name. |
 | Custom domain | Uses a route after Central checks DNS ownership. |
 
-An automatic label encodes the VM's mesh identity as a base-36 number. The proxy decodes it before consulting its stored route map.
+An automatic label is `base36((VM number << 32) | tenant)`. The proxy decodes the VM number and tenant to find the mesh address, without a stored route.
 
 Wildcard DNS already reaches the proxy, so automatic names need no per-VM proxy registration or Site Domain record. They provide an address. Authentication still controls management and login.
 

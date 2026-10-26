@@ -1,30 +1,19 @@
----
-tableFirstCol: 13rem
----
-
 # API reference
 
-These links describe each service's API. N/A means that this table has no separate API documentation link for that interface.
+These links describe each service's API. Central, Cargo, WG Mesh, the IPv6 router, Grove, FrappeMail and Insights have no separate API reference. Use their [integration contracts](#integration-contracts) and source.
 
 ## Available documentation
 
 | Service or interface | API docs |
 | --- | --- |
-| Central | N/A |
 | Atlas | [Atlas API](https://frappe.github.io/atlas/api/atlas/) |
 | Metal | [Metal API](https://frappe.github.io/atlas/api/metal/) |
 | Regional HTTP proxy | [Proxy control API](https://frappe.github.io/atlas/api/http-proxy/) |
 | WireGuard gateway | [Gateway API](https://frappe.github.io/atlas/api/wg-gateway/) |
 | Pilot | [Admin API guide](https://github.com/frappe/pilot/blob/develop/docs/admin-api.md) |
-| Cargo | N/A |
 | Garage | [Upstream administration API v2](https://garagehq.deuxfleurs.fr/api/garage-admin-v2.html) |
-| Datum | [Endpoint guide](https://github.com/frappe/Datum#endpoints) |
+| Datum | [Endpoint guide](https://github.com/frappe/datum#endpoints) |
 | ClickHouse | [Upstream HTTP interface](https://clickhouse.com/docs/interfaces/http) |
-| WG Mesh | N/A |
-| IPv6 router | N/A |
-| Grove | N/A |
-| FrappeMail integration | N/A |
-| Insights integration | N/A |
 
 Pilot has a written guide. Datum lists its endpoints and deployed reference paths. Atlas publishes a generated API reference.
 

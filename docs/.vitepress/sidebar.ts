@@ -29,7 +29,7 @@ export const sidebar = [
   {
     text: 'Reference',
     items: [
-      { text: 'Troubleshooting', link: '/reference/debugging' },
+      { text: 'Debug a slow signup', link: '/reference/debugging' },
       { text: 'API reference', link: '/reference/apis' },
       { text: 'Token validation', link: '/reference/token-validation' },
       { text: 'Repositories', link: '/reference/projects' },

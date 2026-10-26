@@ -1,7 +1,3 @@
----
-tableFirstCol: 10rem
----
-
 # Terms and concepts
 
 These terms connect the customer account, regional infrastructure and Frappe runtime.

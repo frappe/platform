@@ -1,7 +1,3 @@
----
-tableFirstCol: 12rem
----
-
 # Object storage
 
 Garage provides regional S3-compatible object storage. Cargo manages its cluster. Central manages the customer offering and requests buckets and access keys.
