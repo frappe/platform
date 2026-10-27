@@ -17,8 +17,8 @@ Cloud uses automatic names and explicit routes.
 | --- | --- |
 | `admin-vm-<label>.<regional-zone>` | Decodes the label to reach Pilot admin. |
 | `site-<label>.<regional-zone>` | Decodes the label to reach the prepared site. |
-| Customer-chosen regional name | Looks up the stored route for that name. |
-| Custom domain | Uses a route after Central checks DNS ownership. |
+| Customer-chosen regional name | Looks up the name in its local route map. Central writes the route. |
+| Custom domain | Looks up the name in its local route map. Central writes the route after it checks DNS ownership. |
 
 An automatic name contains the VM number and tenant ID. Central combines them into a label using digits and letters. The proxy decodes the label to find the VM's private address without a stored route.
 
@@ -32,6 +32,8 @@ For a chosen name, Central owns the Site Domain record and applies the proxy rou
 
 The prepared image initially knows local names such as `admin.local` and `site.local`. Aliases connect the automatic public hostnames to those local destinations.
 
+> These aliases exist only in the prepared images that Cargo builds for product signup. A regular Pilot installation does not add them.
+
 | Image pattern | Local destination |
 | --- | --- |
 | `admin-vm-*.region.example.com` | Pilot admin. |
@@ -39,9 +41,9 @@ The prepared image initially knows local names such as `admin.local` and `site.l
 
 Pilot checks the pattern with more fixed text first when aliases overlap.
 
-The site pattern matches every name in the regional zone. A chosen name therefore reaches the prepared site as soon as Central routes it to the VM, before the directory rename. After a rename makes the chosen name primary, Pilot can redirect the site aliases to it.
+The site pattern matches every name in the regional zone. A chosen name therefore reaches the prepared site as soon as Central updates the proxy to route it to the VM, before the directory rename. After a rename makes the chosen name primary, Pilot can redirect the site aliases to it.
 
-An alias does not claim a public name. Central must approve a chosen name and route it to this VM. App and Pilot authentication remain separate checks.
+An alias does not claim a public name. Central must approve a chosen name and update the proxy to route it to this VM. App and Pilot authentication remain separate checks.
 
 ## Domain provider
 

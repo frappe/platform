@@ -34,6 +34,6 @@ An app request goes from **visitor → regional HTTP proxy → Pilot VM**. A cus
 
 <AppTrafficDiagram />
 
-Central does not process each page request to a running app. [Domains](./journeys/domains.md) explains how names map to VMs and sites.
+The [Domains](./journeys/domains.md) page explains how wildcard and custom domain changes reach the proxy and map to VMs and sites.
 
 [Authentication and trust](./trust/authentication.md) explains how services check management requests.
