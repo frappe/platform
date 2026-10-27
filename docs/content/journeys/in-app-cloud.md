@@ -1,6 +1,6 @@
-# Cloud controls inside an app
+# In-app Cloud
 
-Cloud Settings lets a Frappe site administrator use hosting controls inside the app. Frappe calls Pilot for local work. Pilot calls Central for the allowed Cloud account operations.
+Cloud Settings lets a site administrator use Cloud controls inside a Frappe app. Frappe calls Pilot for work on the VM. Pilot calls Central for allowed account operations.
 
 ```mermaid
 flowchart LR
@@ -12,13 +12,13 @@ flowchart LR
 
 The browser uses its normal Frappe session. Frappe checks access to Cloud Settings, then calls Pilot from the server.
 
-The site configuration supplies a Pilot endpoint and a site-scoped token. That token identifies the real local site and limits its permitted operations.
+The site configuration contains Pilot's address and a token for that site. The token identifies the site and limits what it can do.
 
 The browser does not need the host's Central credential. A site token does not grant unrestricted access to every bench or site on the VM.
 
 ## Local and Central operations
 
-**Local runtime work** stays with Pilot. It can inspect apps, manage domains or queue permitted site tasks. Changes to shared bench state need further checks.
+Pilot handles local runtime work, such as inspecting apps and queueing permitted site tasks. Some operations also use an external provider. Changes to shared bench state need further checks.
 
 **Cloud account work** reaches Central through `/api/v1/sites/<site>/central/<method>`. Pilot reads the server credential from instance metadata for each call and forwards only these methods:
 
@@ -35,14 +35,14 @@ Central resolves the linked server and team, then applies account and billing ru
 
 For example:
 
-- **Add a domain:** Frappe calls Pilot's site-domain endpoint. Pilot uses the [domain provider](./domains.md#domain-provider) to register the route through Central, then configures the local destination.
+- **Add a domain:** Frappe calls Pilot's site-domain endpoint. On Frappe Cloud, Pilot registers the domain through the [domain provider](./domains.md#domain-provider), which calls Central. Without a provider, Pilot verifies the domain locally. Pilot then queues the nginx and certificate setup.
 - **View billing:** Frappe calls Pilot's forwarding endpoint. Central returns the relevant account, server and trial information through Pilot.
 
 A queued task can continue after the first response. The panel follows Pilot's task progress to learn the result.
 
 ## Server login
 
-The Open server link goes to Central with the Pilot audience. Central resolves the server, checks the signed-in user's access and issues a Pilot login assertion.
+The Open server link sends Central the Pilot audience, the identity Pilot expects in its login token. Central finds the server, checks the user's access and issues a signed login token.
 
 A Frappe site administrator does not automatically receive every Cloud server control. Trials can expose the app while server-level controls remain locked.
 
@@ -50,6 +50,6 @@ A Frappe site administrator does not automatically receive every Cloud server co
 
 A billing request needs Central to answer. A local operation needs Pilot and the runtime it uses. A background task can continue even if a progress request fails temporarily.
 
-The app's normal page-serving path is separate. An unavailable hosting control does not necessarily stop visitors from using the app.
+The app serves pages through a separate path. A Cloud control can be unavailable while visitors can still use the app.
 
 Implementation starts in the [Frappe Cloud Settings client](https://github.com/frappe/frappe/blob/develop/frappe/integrations/frappe_providers/cloud_settings.py), [Pilot forwarding route](https://github.com/frappe/pilot/blob/develop/admin/backend/api/v1/sites/central.py) and [Central SSO](https://github.com/frappe/central/blob/develop/spec/SSO.md).

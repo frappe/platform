@@ -1,6 +1,6 @@
-# How services communicate
+# Service communication
 
-Services exchange requests through APIs. Longer operations run in background jobs. Reports and state checks tell the caller what happened.
+Services send requests through APIs. Longer tasks run in the background. Services report their results or let other services check their state.
 
 ## Management requests
 
@@ -12,13 +12,13 @@ flowchart LR
   Atlas -->|host work| Metal[Metal]
 ```
 
-Atlas owns the regional VM record and selects a host. Metal performs the host operation. Each service changes the records it owns.
+Atlas keeps the regional VM record and selects a host. Metal does the work on that host. Each service updates its own records.
 
 Reports return through the same ownership layers. Metal reports host state to Atlas. Atlas reports regional state to Central. The initial API response can arrive before all this work finishes.
 
 ## State reports
 
-A **webhook** is an HTTP request that reports an event. Central registers a receiver and signing secret with the regional service.
+Central registers a webhook receiver and signing secret with the regional service.
 
 Atlas delivers VM state. Cargo delivers managed-service state, including storage readiness and health. Central checks the signature before it uses a report.
 
@@ -34,7 +34,7 @@ Central also reads regional state to check progress and recover interrupted acti
 | Central → Cargo | Manage buckets and storage credentials. |
 | Central → HTTP proxy | Add or remove customer domain routes. |
 | Atlas → HTTP proxy | Configure regional service routes and proxy infrastructure. |
-| Atlas → Cargo | Install Cargo and create Atlas's image-artifact bucket. |
+| Atlas → Cargo | Install Cargo and request Atlas's image-artifact bucket. |
 | Cargo → HTTP proxy | Add `-svc` routes for Garage and other managed services. |
 | Central → Pilot | Arrange login and manage the assigned runtime. |
 | Pilot → Central | Call the allowed Cloud account methods. |
@@ -53,6 +53,21 @@ For regional domains, TLS ends at the proxy. For custom-domain HTTPS, TLS passes
 
 ## Request completion
 
-Acceptance records the request. Completion needs an observation from the service that performs the work.
+An accepted request means the service recorded the work. To know that it finished, the caller checks the result from the service doing the work.
 
 A VM can be running while its app is still starting. A route can work while a site rename is pending. Central tracks these milestones separately, as the [signup flow](../journeys/signup.md) shows.
+
+## Service availability
+
+An unavailable service can affect the operations that depend on it:
+
+| Service unavailable | Possible effect |
+| --- | --- |
+| Central | New account decisions and management requests need Central. A running app can continue to serve through its regional proxy and VM. |
+| Atlas | New regional VM operations and services that need Atlas cannot complete. Running VMs can continue if their hosts and traffic paths remain available. |
+| HTTP proxy | App domains routed through affected proxy nodes can fail. Healthy nodes can serve their existing routes when available. |
+| Pilot | Pilot management and local tasks can fail. A Frappe site may continue serving if its own processes and traffic path work. |
+| Garage | Object requests to the affected cluster can fail. Operations that need its objects, including image artifacts or backups, can also be affected. |
+| Cargo | Image builds and managed-service operations that need Cargo can stop. Garage object requests use their own gateway and storage path. |
+
+A regional service can check a known token without contacting Central for each request. [Network partitions](../trust/authentication.md#network-partitions) explains the key-cache conditions and expiry limits.

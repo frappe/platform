@@ -1,6 +1,6 @@
 # Object storage
 
-Garage provides regional S3-compatible object storage. Cargo manages its cluster. Central manages the customer offering and requests buckets and access keys.
+Garage is an open-source, S3-compatible object store. Cargo manages the regional Garage cluster. Central manages the customer offering and requests buckets and access keys.
 
 ## Cluster provisioning
 
@@ -8,7 +8,7 @@ Cargo asks Atlas for a gateway VM and storage VMs, then installs and configures 
 
 Setup can be operator-driven or automatically provisioned. Automatic provisioning tracks allocated machines so another attempt can continue from existing work.
 
-Garage needs its nodes to join and its storage layout to be applied. The cluster must have enough storage nodes for the configured replication factor.
+The Garage machines must join the cluster and receive a storage layout, which tells Garage which machine stores which data. The cluster needs enough storage machines to keep the configured number of copies.
 
 Cargo creates proxy routes for the S3 and administration endpoints. The region permits one Active object storage cluster.
 
@@ -22,7 +22,7 @@ flowchart LR
   Cargo --> Garage[Garage administration API]
 ```
 
-Cargo performs bucket creation and deletion, issues access keys and rotates or removes credentials. Central does not administer the Garage machines directly.
+Cargo creates and deletes buckets. It also issues, replaces and deletes access keys. Central does not manage the Garage machines directly.
 
 The credentials have separate purposes:
 
@@ -30,7 +30,7 @@ The credentials have separate purposes:
 | --- | --- |
 | Cargo's Atlas token | Request service machines in tenant `0`. |
 | Cargo's restricted proxy token | Manage service routes with the `-svc` suffix. |
-| Central's Cargo token | Request bucket operations through Cargo. |
+| Central's Cargo token | Request bucket operations through Cargo. Central signs a new 5-minute token for each region. |
 | Garage administration credential | Configure the cluster and its resources. |
 | Customer S3 access keys | Access the authorized bucket's objects. |
 
@@ -44,19 +44,19 @@ flowchart LR
   Gateway --> Storage[Storage nodes]
 ```
 
-The endpoint reaches the gateway through the regional proxy. Storage nodes hold the data according to Garage's layout and replication settings.
+The regional proxy sends requests to the gateway. The storage machines hold the data and its copies according to Garage's configuration.
 
-Central and Cargo arrange the service and access. They do not process each S3 object request.
+Cargo never handles object data. Central's console reads and deletes objects with the bucket's own key, and signs short-lived upload and download links that the browser uses directly.
 
 ## Registration, readiness and health
 
-Installing Cargo is one milestone. Central then registers its report receiver and webhook signing secret.
+Atlas installs Cargo with placeholder Central settings, so Cargo reports nothing at first. When Cargo answers its ping, Central sends it a report receiver URL and a webhook signing secret. Central retries every 10 minutes.
 
 Cargo sends signed service reports. Central checks them and records the endpoint and availability in its managed-service records.
 
-A configured process does not prove that Garage can accept objects. Setup must finish, and health checks must show that the running cluster is usable.
+A running process does not prove that Garage can accept files. Setup must finish so the cluster becomes Active, and Cargo then reports it to Central as available.
 
-An Active cluster can later become unhealthy. Cargo tracks lifecycle and health separately and reports both as appropriate.
+Cargo tracks lifecycle and health separately. It reports only lifecycle changes to Central. Cargo checks health every minute and keeps the result. A Critical result makes Cargo refuse new buckets.
 
 Object storage can hold backups. Pilot still owns the site backup operation, schedule and restore process.
 

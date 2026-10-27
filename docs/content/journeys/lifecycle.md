@@ -1,6 +1,6 @@
-# After creation
+# Resource lifecycle
 
-Server changes follow the same pattern as signup: save the request, ask the owning service to act and confirm the result.
+For operations such as starting or resizing a server, Central saves the request, asks the region to do the work and checks the result.
 
 ```mermaid
 flowchart LR
@@ -10,7 +10,7 @@ flowchart LR
 
 ## Resource actions
 
-Central's Resource Action records the request, authorization context, progress and any accepted regional resource identity.
+A Resource Action is Central's record of a request. It holds who requested the work, its progress and the regional resource ID when one is available.
 
 The console can receive a successful response while the action remains queued or in progress. Completion needs an observation from the service that performs the work.
 
@@ -18,20 +18,20 @@ The console can receive a successful response while the action remains queued or
 | --- | --- |
 | Start a VM | Atlas observes the requested runtime state. |
 | Resize a VM | Atlas observes the requested machine shape. |
-| Rename a site | Pilot's rename task completes. |
-| Apply a domain | The proxy route change succeeds. |
 
-Atlas compares regional state with host reports. Central follows the regional observations relevant to the customer action.
+Atlas checks its records against host reports. Central follows the regional results for the customer's request.
+
+Other operations track completion separately. A site rename finishes when Pilot's rename task completes. A domain route finishes when the proxy applies the change.
 
 ## Uncertain request outcomes
 
 Suppose Central sends a create request but loses the connection before the answer. The region may already have created the VM.
 
-Central keeps the uncertain action and searches the authorized regional resources for the original request marker. It adopts a matching VM if it finds one.
+Central keeps the action open and searches the team's regional resources for the original request. If it finds a matching VM, it uses that VM.
 
 A completed search with no match can establish failure. An unreachable region leaves the outcome uncertain. Retrying creation immediately could create another server.
 
-Once Central knows the accepted VM identity, recovery continues from that identity. Local finalization can retry without repeating creation.
+Once Central knows the VM's identity, it can retry the remaining work without creating another VM.
 
 The [Resource Action contract](https://github.com/frappe/central/blob/develop/central/infrastructure/doctype/resource_action/SPEC.md) defines the exact states and recovery rules.
 
@@ -47,7 +47,7 @@ Ended trials follow Central's retention and deletion policy.
 
 ## Snapshots and site backups
 
-An Atlas VM snapshot saves machine state. A Pilot site backup saves Frappe data. They have different scopes and restore procedures.
+An Atlas VM snapshot saves the VM disk and can include memory. A Pilot site backup saves the site database and can include files. They have different scopes and restore procedures.
 
 Cargo also takes VM snapshots to publish reusable images. An image build serves a different purpose from a customer's recovery snapshot.
 

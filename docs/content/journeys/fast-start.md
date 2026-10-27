@@ -1,6 +1,6 @@
 # Fast app startup
 
-The prepared startup path targets less than 15 seconds. It moves installation and application warm-up before signup, leaving the new VM to restore, apply its identity and answer requests.
+The fast startup path targets less than 15 seconds. It installs and prepares the app before signup. The new VM restores that work, applies its identity and starts answering requests.
 
 This target depends on the image, machine shape and working dependencies. It does not describe every cold start or the entire signup UI.
 
@@ -14,9 +14,9 @@ flowchart LR
 
 Cargo installs Pilot, Frappe and the product apps, configures production processes and prepares hostname aliases.
 
-A disk image saves those files. A warm snapshot also saves prepared memory and process state. Before capture, Atlas runs an isolated guest for five minutes. The prewarm service requests `/api/method/ping`, the home page, `/login` and an authenticated `/desk` page through the local worker.
+A disk image saves files. A warm snapshot also saves the VM's prepared memory and running processes. Before capture, Atlas runs an isolated guest for five minutes. The prewarm service requests `/api/method/ping`, the home page, `/login` and an authenticated `/desk` page through the local worker.
 
-Atlas captures after its fixed wait. It does not check whether prewarm succeeded.
+Atlas captures after five minutes. It does not check whether prewarm succeeded.
 
 Frappe loads code and prepares its workers ahead of the customer's request. Pilot's admin process must stay awake during preparation. An idle process can add another wake-up delay.
 
@@ -28,12 +28,12 @@ Warm restore needs the template's CPU count and memory size. The new disk must b
 
 Two mechanisms remove setup work from the first login:
 
-- [Bootstrap](./bootstrap.md) applies the VM's identity from metadata and seeds Pilot's key cache, so the first login needs no key download.
-- [Local aliases](./domains.md#local-hostname-aliases) let the public name reach the prepared site before its physical rename.
+- [Bootstrap](./bootstrap.md) applies the VM's identity from metadata. When Central supplies initial keys, Pilot seeds its cache before the first login.
+- [Local aliases](./domains.md#local-hostname-aliases) let the chosen name reach the prepared site before its physical rename.
 
 ## Clock restoration
 
-A memory snapshot preserves an old guest clock. A VM captured at 11 pm can initially read 11 pm when restored later.
+A memory snapshot saves the VM's clock as it was at capture. A VM captured at 11 pm can initially read 11 pm when restored later.
 
 A token issued now can appear to come from the future. Pilot can reject it even when the key and signature are correct.
 
@@ -47,9 +47,9 @@ This needs both the Metal change and a guest image containing the updated agent.
 
 ## Disk consistency
 
-Cargo runs `sync`, stops the builder and waits for Stopped before requesting a disk snapshot. This flush is separate from warming memory.
+Cargo runs `sync` on the builder, stops it and waits for Atlas to report Stopped before it requests a disk snapshot. This flush is separate from warming memory.
 
-Without it, dirty memory pages may never reach the captured disk. A service unit file can appear empty. Database files can need recovery on the next start.
+Without this flush, recent writes can be missing from the saved disk. A service file can be empty. Database files can need recovery on the next start.
 
 MariaDB recovery delays warm-template preparation and can affect later signup. A good warm path therefore starts with a valid disk image.
 

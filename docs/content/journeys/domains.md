@@ -1,6 +1,6 @@
-# How a domain reaches a site
+# Domains and routing
 
-A public name must select both a VM and a site inside it. DNS reaches the regional proxy. The proxy selects the VM. The VM's nginx web server selects the site.
+A public domain must lead to the right VM and the right site inside it. DNS directs visitors to the regional proxy. The proxy selects the VM. The VM's nginx web server selects the site.
 
 ```mermaid
 flowchart LR
@@ -20,7 +20,9 @@ Cloud uses automatic names and explicit routes.
 | Customer-chosen regional name | Looks up the stored route for that name. |
 | Custom domain | Uses a route after Central checks DNS ownership. |
 
-An automatic label is `base36((VM number << 32) | tenant)`. The proxy decodes the VM number and tenant to find the mesh address, without a stored route.
+An automatic name contains the VM number and tenant ID. Central combines them into a label using digits and letters. The proxy decodes the label to find the VM's private address without a stored route.
+
+The expression is `base36((VM number << 32) | tenant)`.
 
 Wildcard DNS already reaches the proxy, so automatic names need no per-VM proxy registration or Site Domain record. They provide an address. Authentication still controls management and login.
 
@@ -28,18 +30,18 @@ For a chosen name, Central owns the Site Domain record and applies the proxy rou
 
 ## Local hostname aliases
 
-The prepared image initially knows local names such as `admin.local` and `site.local`. Aliases connect public hostnames to those local destinations without redirecting the browser.
+The prepared image initially knows local names such as `admin.local` and `site.local`. Aliases connect the automatic public hostnames to those local destinations.
 
 | Image pattern | Local destination |
 | --- | --- |
 | `admin-vm-*.region.example.com` | Pilot admin. |
 | `*.region.example.com` | The prepared Frappe site. |
 
-Pilot puts the pattern with more literal text first. The admin pattern therefore wins when both patterns match.
+Pilot checks the pattern with more fixed text first when aliases overlap.
 
-Other matching regional names reach the prepared site. This lets a chosen public name work before the physical site rename finishes.
+The site pattern matches every name in the regional zone. A chosen name therefore reaches the prepared site as soon as Central routes it to the VM, before the directory rename. After a rename makes the chosen name primary, Pilot can redirect the site aliases to it.
 
-The broad local alias does not claim a public name. Central must approve the name and route it to this VM. App and Pilot authentication remain separate checks.
+An alias does not claim a public name. Central must approve a chosen name and route it to this VM. App and Pilot authentication remain separate checks.
 
 ## Domain provider
 
@@ -49,9 +51,9 @@ When `bench-domain-provider` is on `PATH`, Pilot calls it for DNS instructions, 
 
 The Cloud provider calls Central with the server's Pilot credential. Central derives the destination server from that credential, so the caller cannot choose another customer's VM.
 
-For custom domains, Central supplies a DNS recipe with a proxy destination and TXT verification record. Registration checks the published records before it creates the route.
+For custom domains, Central supplies a DNS recipe with a proxy destination and TXT verification record. Registration checks the TXT record and, for a subdomain, the CNAME before it creates the route.
 
-The provider returns the public scheme, origin scheme and client-IP policy. Pilot uses these to configure nginx. It deregisters during rollback when local creation fails after registration.
+The provider returns the public scheme, origin scheme and client-IP policy. Pilot configures nginx to trust client information from the provider's proxy addresses. It deregisters during rollback when local creation fails after registration.
 
 ## TLS termination
 
@@ -66,7 +68,7 @@ A DNS record pointing at the proxy does not make the proxy responsible for a cus
 
 Central can route a public name before Pilot changes the site's directory. During rename, old nginx workers and queued jobs can still refer to `site.local`.
 
-Pilot atomically exchanges the directory and a compatibility symlink. The old path then resolves to the new directory:
+Pilot prepares a link, then swaps it with the old directory in one step. The old path then points to the new directory:
 
 ```text
 sites/site.local → sites/chosen.region.example.com

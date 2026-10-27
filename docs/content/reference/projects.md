@@ -1,16 +1,16 @@
 # Repositories
 
-Use this guide for connections between services. Use the owning repository for implementation, exact contracts, setup commands and runbooks.
+This page maps each repository to its responsibility, code entry points and docs. Each repository holds its own API details, setup commands and operating guides.
 
-## Project ownership
+## Repository ownership
 
-| Project | Responsibility | Code entry points |
+| Repository | Responsibility | Code entry points |
 | --- | --- | --- |
-| [Central](https://github.com/frappe/central) | Accounts, permissions, signup, billing and service coordination. | `central/integrations/`, resource DocTypes, `dashboard/` |
-| [Atlas](https://github.com/frappe/atlas) | Regional VMs, hosts and networking. Includes Metal and network services. | `atlas/`, `metal/`, `services/` |
+| [Central](https://github.com/frappe/central) | Accounts, permissions, signup, billing, and the control plane for servers and sites. | `central/infrastructure/`, `central/signups/`, `central/billing/`, `central/integrations/`, `dashboard/` |
+| [Atlas](https://github.com/frappe/atlas) | Regional VMs, hosts and networking. | `atlas/` (control app), `metal/` (host daemon), `services/` (network services) |
 | [Pilot](https://github.com/frappe/pilot) | Benches, sites, local processes, tasks and backups. | `pilot/core/`, `pilot/integrations/central/`, `admin/backend/api/v1/` |
-| [Cargo](https://github.com/frappe/cargo) | Image builds and regional managed services. | `cargo/image_builder/`, `cargo/object_storage/` |
-| [Frappe](https://github.com/frappe/frappe) | Site runtime, sessions and in-app Cloud Settings. | `frappe/integrations/frappe_providers/` |
+| [Cargo](https://github.com/frappe/cargo) | Pilot image builds, the Garage object storage cluster and the Datum host. | `cargo/image_builder/`, `cargo/object_storage/`, `cargo/telemetry/` |
+| [Frappe](https://github.com/frappe/frappe) | Application framework for sites. Hosts the in-app Cloud Settings and billing clients. | `frappe/integrations/frappe_providers/` |
 
 ## Component documentation
 
@@ -38,6 +38,6 @@ The [Cloud Settings client](https://github.com/frappe/frappe/blob/develop/frappe
 
 ## Documentation ownership
 
-Cross-service journeys belong here. Exact API fields, commands and recovery rules belong in the component docs.
+Keep explanations that cross services in the workflow and platform pages. Keep exact API fields, commands and recovery steps in the service's own docs.
 
-When behavior changes, update the owning explanation and adjust this guide's summary or links. If docs and source differ, check the implementation before changing the contract.
+When behavior changes, update the service's docs and this guide's summary if needed. If docs and code differ, check the code.
