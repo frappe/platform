@@ -1,5 +1,5 @@
 <template>
-  <figure class="cloud-architecture" aria-label="Cloud v2 architecture: customers use Central, which manages separate regions. Mumbai is shown in detail.">
+  <figure class="cloud-architecture" aria-label="Cloud v2 architecture: customers use Central, which manages separate regions. The Mumbai region is expanded.">
     <div class="cloud-map">
       <div class="central-group">
         <div class="customer-label">Customer · Cloud console</div>
@@ -16,7 +16,6 @@
         <section class="region-detail" aria-label="Mumbai region">
           <header class="region-heading">
             <div><span class="region-code">BOM</span><strong>Mumbai</strong></div>
-            <span>One region, in detail</span>
           </header>
           <div class="regional-control">
             <div><strong>Atlas</strong><span>Manages VMs and hosts</span></div>

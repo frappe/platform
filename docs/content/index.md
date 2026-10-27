@@ -30,6 +30,10 @@ Atlas manages two types of VM:
 
 For a VM infrastructure change, a request can go from **customer → Central → Atlas → Metal**. Central checks the customer's permission. The regional services check the credentials for their part of the work.
 
-An app request goes from **visitor → regional HTTP proxy → Pilot VM**. Central does not process each page request to a running app.
+An app request goes from **visitor → regional HTTP proxy → Pilot VM**. A custom domain has a CNAME record that points to the region's proxy name, such as `proxy.bom.frappe.cloud`. That name has one DNS record for each healthy proxy node in the region, up to five. The node that receives the request looks up the route and forwards it over WG Mesh to the VM's mesh address. Inside the VM, nginx selects the site and passes the request to the Frappe web process that Pilot runs.
+
+<AppTrafficDiagram />
+
+Central does not process each page request to a running app. [Domains](./journeys/domains.md) explains how names map to VMs and sites.
 
 [Authentication and trust](./trust/authentication.md) explains how services check management requests.
