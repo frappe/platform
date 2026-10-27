@@ -28,7 +28,7 @@ Atlas manages two types of VM:
 
 ## Management and application traffic
 
-For a VM infrastructure change, a request can go from **customer → Central → Atlas → Metal**. Central checks the customer's permission. The regional services check the credentials for their part of the work.
+For a VM infrastructure change, a request can go from **customer → Central → Atlas → Metal**. Central checks the customer's permission. The regional services check the credentials for their part of the work. [Authentication and trust](./trust/authentication.md) explains these checks.
 
 An app request goes from **visitor → regional HTTP proxy → Pilot VM**. A custom domain has a CNAME record that points to the region's proxy name, such as `proxy.bom.frappe.cloud`. That name has one DNS record for each healthy proxy node in the region, up to five. The node that receives the request looks up the route and forwards it over WG Mesh to the VM's mesh address. Inside the VM, nginx selects the site and passes the request to the Frappe web process that Pilot runs.
 
@@ -36,4 +36,12 @@ An app request goes from **visitor → regional HTTP proxy → Pilot VM**. A cus
 
 The [Domains](./journeys/domains.md) page explains how wildcard and custom domain changes reach the proxy and map to VMs and sites.
 
-[Authentication and trust](./trust/authentication.md) explains how services check management requests.
+## Inside a Pilot VM
+
+nginx receives every request that reaches the VM. It serves static assets and files from disk. It sends page and API requests to the Frappe web process and `/socket.io` to the realtime server. Requests for the `admin-vm-*` hostname go to Pilot admin.
+
+Frappe has three roles: web requests, realtime updates and background jobs. A new bench uses lite mode by default, so one Frappe process runs all three. With lite mode off, each role runs as its own service: gunicorn for web, a socketio server for realtime, and a worker pool with the scheduler for jobs. Redis holds the cache and the job queue, and MariaDB holds the site databases.
+
+Pilot runs its admin API and UI, with a task worker for long operations. A monitor collects metrics and pings each site, and Fluent Bit ships logs.
+
+<PilotVmDiagram />

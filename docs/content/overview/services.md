@@ -11,7 +11,7 @@ Cloud v2 has services for customer accounts, regional infrastructure and softwar
 | Metal | Runs VMs and manages disks and images on each physical host. Returns host capacity and VM state to Atlas on each sync. |
 | WG Mesh | Carries private VM traffic over encrypted host tunnels and enforces tenant network boundaries. |
 
-For example, to resize a VM, the customer asks Central. Central checks their permission and billing, then asks Atlas to resize the VM. Atlas picks a host with enough capacity, and Metal applies the new size.
+For example, to resize a VM, the customer asks Central. Central checks their permission and billing, then asks Atlas to resize the VM. Atlas resizes it on its current host, or moves it to a host with enough capacity.
 
 Atlas manages both raw and Pilot VMs. Metal and WG Mesh run on the physical hosts.
 
@@ -45,7 +45,7 @@ Regional service VMs use the same Metal infrastructure as customer VMs, under se
 
 The proxy, Cargo, IPv6 router and WireGuard gateway run on **privileged** service VMs. WG Mesh lets these VMs reach across tenant boundaries. Customer VMs do not receive this access.
 
-Atlas keeps image files in a bucket on the regional Garage. Atlas asks Cargo to create the bucket. Metal downloads the files through signed URLs.
+Atlas keeps image files in a bucket on the regional Garage. Atlas asks Cargo to create the bucket. Metal downloads the files through signed URLs. During [regional bootstrap](../regional/bootstrap.md), before Garage exists, System images are public files on the Atlas site.
 
 Network reach does not replace API permission. [Authentication](../trust/authentication.md) explains the checks on each request.
 
